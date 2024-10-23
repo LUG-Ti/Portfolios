@@ -1,0 +1,74 @@
+name: Validate Portfolio Structure
+
+on: 
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  check-structure:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get GitHub username
+        run: echo "GITHUB_USERNAME=${{ github.actor }}" >> $GITHUB_ENV
+
+      - name: List files in the repository
+        run: |
+          echo "Listing all files in the repository:"
+          find . -type f
+
+      - name: Validate folder structure
+        run: |
+          # Get the folder that matches the GitHub username of the PR author
+          PR_FOLDER="${{ github.actor }}"
+
+          # Check if there are any files/folders at the root level other than the expected ones
+          INVALID_ROOT_CONTENT=$(find . -maxdepth 1 -type d ! -name '.' ! -name '.github' ! -name "${PR_FOLDER}" ! -name '.git')
+          if [ ! -z "$INVALID_ROOT_CONTENT" ]; then
+            echo "Error: Only your username folder is allowed at the root level."
+            echo "Unexpected content at the root:"
+            echo "$INVALID_ROOT_CONTENT"
+            exit 1
+          fi
+
+          # Ensure the folder for the GitHub user exists
+          if [ ! -d "${PR_FOLDER}" ]; then
+            echo "Error: A folder named after your GitHub username (${PR_FOLDER}) was not found."
+            exit 1
+          fi
+
+          # Check if frontend and backend directories exist
+          if [ ! -d "${PR_FOLDER}/frontend" ]; then
+            echo "Error: The frontend folder is missing in ${PR_FOLDER}/."
+            exit 1
+          fi
+
+          if [ ! -d "${PR_FOLDER}/backend" ]; then
+            echo "Error: The backend folder is missing in ${PR_FOLDER}/."
+            exit 1
+          fi
+
+          # Check if README.md exists in the user folder
+          if [ ! -f "${PR_FOLDER}/README.md" ]; then
+            echo "Error: The README.md file is missing in ${PR_FOLDER}/."
+            exit 1
+          fi
+
+          # Check if the README.md is non-empty and follows a simple format (e.g., contains portfolio creator details)
+          if [ ! -s "${PR_FOLDER}/README.md" ]; then
+            echo "Error: README.md exists but is empty. Please add details about the portfolio creator."
+            exit 1
+          fi
+
+          echo "All checks passed. Folder structure is correct."
+
+      - name: Display success message
+        if: success()
+        run: echo "Folder structure validated successfully."
+
+      - name: Show failure hint
+        if: failure()
+        run: echo "Please ensure your submission follows the correct structure: a folder with your GitHub username containing frontend/, backend/, and README.md."
