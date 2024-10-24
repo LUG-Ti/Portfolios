@@ -1,4 +1,4 @@
-# Portfolios
+# Portfolio Challenge 
 
 Welcome to the **Portfolios Repository**, a collection of various unique portfolios, each showcasing creative designs and functional backends. This repository contains different portfolios from developers with distinct styles and technical approaches. Each folder represents a developer’s portfolio, containing both frontend and backend directories, along with details about the portfolio creator and their design inspiration.
 
